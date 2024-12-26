@@ -1,0 +1,366 @@
+{
+  "rules": [
+    {
+      "id": "PROC-001",
+      "name": "可疑进程检测",
+      "description": "检测具有可疑特征的进程",
+      "category": "process",
+      "severity": "high",
+      "conditions": [
+        "name matches (cmd\\.exe|powershell\\.exe)",
+        "parent_name != explorer.exe",
+        "cpu_percent > 80"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "PROC-002",
+      "name": "隐藏进程检测",
+      "description": "检测可能被隐藏的进程",
+      "category": "process",
+      "severity": "high",
+      "conditions": [
+        "name matches (.*svc.*|.*host.*)",
+        "parent_pid == 0",
+        "username == SYSTEM"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "PROC-003",
+      "name": "异常系统进程",
+      "description": "检测可能被伪装的系统进程",
+      "category": "process",
+      "severity": "high",
+      "conditions": [
+        "name matches (svchost\\.exe|lsass\\.exe|csrss\\.exe)",
+        "path !contains System32",
+        "signature_valid != true"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "NET-001",
+      "name": "可疑网络连接",
+      "description": "检测可疑的网络连接",
+      "category": "network",
+      "severity": "high",
+      "conditions": [
+        "remote_port == 4444",
+        "state == ESTABLISHED",
+        "process_name matches (.*\\.exe)"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "NET-002",
+      "name": "异常端口监听",
+      "description": "检测在异常端口上的监听",
+      "category": "network",
+      "severity": "medium",
+      "conditions": [
+        "local_port < 1024",
+        "state == LISTEN",
+        "process_name !matches (System|svchost\\.exe|lsass\\.exe)"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "NET-003",
+      "name": "可疑远程连接",
+      "description": "检测可疑的远程连接模式",
+      "category": "network",
+      "severity": "high",
+      "conditions": [
+        "remote_port matches (3389|22|23)",
+        "state == ESTABLISHED",
+        "process_name !matches (mstsc\\.exe|putty\\.exe)"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "REG-001",
+      "name": "可疑注册表项",
+      "description": "检测可疑的注册表修改",
+      "category": "registry",
+      "severity": "medium",
+      "conditions": [
+        "path contains SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+        "value_type == REG_SZ",
+        "modified_time > 2024-01-01"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "REG-002",
+      "name": "系统服务修改",
+      "description": "检测对系统服务的可疑修改",
+      "category": "registry",
+      "severity": "high",
+      "conditions": [
+        "path contains SYSTEM\\CurrentControlSet\\Services",
+        "name matches (Start|ImagePath)",
+        "modified_time > 2024-01-01"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "REG-003",
+      "name": "安全策略修改",
+      "description": "检测对系统安全策略的修改",
+      "category": "registry",
+      "severity": "high",
+      "conditions": [
+        "path contains SYSTEM\\CurrentControlSet\\Control\\Lsa",
+        "modified_time > 2024-01-01"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "USER-001",
+      "name": "可疑用户账户",
+      "description": "检测可疑的用户账户",
+      "category": "user",
+      "severity": "high",
+      "conditions": [
+        "is_admin == true",
+        "last_login_time > 2024-01-01",
+        "groups contains Administrators"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "USER-002",
+      "name": "隐藏用户检测",
+      "description": "检测可能的隐藏用户账户",
+      "category": "user",
+      "severity": "high",
+      "conditions": [
+        "username matches .*\\$$",
+        "is_disabled == false",
+        "groups contains Administrators"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "USER-003",
+      "name": "异常登录活动",
+      "description": "检测异常的用户登录活动",
+      "category": "user",
+      "severity": "medium",
+      "conditions": [
+        "failed_login_count > 5",
+        "last_login_time matches 2024-.*",
+        "is_locked == false"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "SYS-001",
+      "name": "系统资源异常",
+      "description": "检测系统资源使用异常",
+      "category": "system",
+      "severity": "medium",
+      "conditions": [
+        "memory_usage > 90%",
+        "cpu_usage > 95%",
+        "disk_free < 10%"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "SYS-002",
+      "name": "系统性能异常",
+      "description": "检测系统性能异常状况",
+      "category": "system",
+      "severity": "medium",
+      "conditions": [
+        "cpu_queue_length > 10",
+        "disk_queue_length > 5",
+        "page_faults_per_sec > 1000"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "SYS-003",
+      "name": "系统服务异常",
+      "description": "检测关键系统服务的异常",
+      "category": "system",
+      "severity": "high",
+      "conditions": [
+        "critical_service_count < expected_service_count",
+        "stopped_service_count > 0"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "PROC-004",
+      "name": "进程注入检测",
+      "description": "检测可能的进程注入行为",
+      "category": "process",
+      "severity": "high",
+      "conditions": [
+        "memory_writes > 1000",
+        "remote_threads > 0",
+        "virtual_alloc_count > 10"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "PROC-005",
+      "name": "敏感进程访问",
+      "description": "检测对敏感进程的访问",
+      "category": "process",
+      "severity": "high",
+      "conditions": [
+        "target_process matches (lsass\\.exe|winlogon\\.exe)",
+        "access_type contains PROCESS_VM_READ",
+        "source_process !matches (System|smss\\.exe)"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "NET-004",
+      "name": "DNS异常检测",
+      "description": "检测可疑的DNS查询",
+      "category": "network",
+      "severity": "medium",
+      "conditions": [
+        "dns_queries_per_min > 100",
+        "unique_domains_per_min > 50",
+        "failed_queries_percent > 30"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "NET-005",
+      "name": "加密流量异常",
+      "description": "检测异常的加密流量模式",
+      "category": "network",
+      "severity": "high",
+      "conditions": [
+        "ssl_version < TLS1.2",
+        "encrypted_bytes_per_sec > 1000000",
+        "certificate_valid == false"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "REG-004",
+      "name": "启动项异常",
+      "description": "检测可疑的启动项配置",
+      "category": "registry",
+      "severity": "high",
+      "conditions": [
+        "path matches (.*\\\\Run|.*\\\\RunOnce)",
+        "value contains (%TEMP%|%AppData%)",
+        "modified_time > 2024-01-01"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "REG-005",
+      "name": "文件关联修改",
+      "description": "检测对文件类型关联的修改",
+      "category": "registry",
+      "severity": "medium",
+      "conditions": [
+        "path contains SOFTWARE\\Classes",
+        "name == Command",
+        "value contains cmd.exe"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "EVT-001",
+      "name": "可疑登录活动",
+      "description": "检测可疑的登录活动",
+      "category": "eventlog",
+      "severity": "high",
+      "conditions": [
+        "event_type == LOGIN",
+        "result == FAILED",
+        "level == ERROR"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "EVT-002",
+      "name": "权限提升活动",
+      "description": "检测权限提升活动",
+      "category": "eventlog",
+      "severity": "high",
+      "conditions": [
+        "event_type == PRIVILEGE",
+        "description contains elevated",
+        "user != SYSTEM"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "EVT-003",
+      "name": "服务异常",
+      "description": "检测关键服务的异常",
+      "category": "eventlog",
+      "severity": "high",
+      "conditions": [
+        "event_type == SERVICE",
+        "result == FAILED",
+        "source matches (Windows Defender|Windows Firewall)"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "EVT-004",
+      "name": "审计策略更改",
+      "description": "检测审计策略的更改",
+      "category": "eventlog",
+      "severity": "medium",
+      "conditions": [
+        "event_type == AUDIT",
+        "category == Policy Change",
+        "time > 2024-01-01"
+      ],
+      "action": "alert",
+      "enabled": true
+    },
+    {
+      "id": "EVT-005",
+      "name": "可疑进程活动",
+      "description": "检测可疑的进程活动",
+      "category": "eventlog",
+      "severity": "high",
+      "conditions": [
+        "event_type == PROCESS",
+        "process_name matches (cmd\\.exe|powershell\\.exe)",
+        "description contains created"
+      ],
+      "action": "alert",
+      "enabled": true
+    }
+  ]
+}
